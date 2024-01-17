@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Husliste</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<div id="app" class="container mt-5">
+    <h1>Husliste</h1>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Adresse</th>
+                <th>Bebyggelses År</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="house in houses" :key="house.id">
+                <td>{{ house.id }}</td>
+                <td>{{ house.address }}</td>
+                <td>{{ house.constructionYear }}</td>
+                <td>
+                    <button class="btn btn-danger" @click="deleteHouse(house.id)" :disabled="house.id <= 4">Slet</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form @submit.prevent="addHouse">
+        <div class="form-group">
+            <label>Adresse</label>
+            <input v-model="newHouse.address" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Bebyggelses År</label>
+            <input v-model="newHouse.constructionYear" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Tilføj Hus</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        houses: [],
+        newHouse: {
+            address: '',
+            constructionYear: '',
+        }
+    },
+    mounted() {
+        this.fetchHouses();
+    },
+    methods: {
+        fetchHouses() {
+            axios.get('https://resthouseexam2023.azurewebsites.net/api/Houses')
+                .then(response => {
+                    this.houses = response.data;
+                })
+                .catch(error => {
+                    console.error('Error fetching houses', error);
+                });
+        },
+        addHouse() {
+            axios.post('https://resthouseexam2023.azurewebsites.net/api/Houses', this.newHouse)
+                .then(response => {
+                    this.fetchHouses();
+                    this.newHouse = {
+                        address: '',
+                        constructionYear: '',
+                    };
+                })
+                .catch(error => {
+                    console.error('Error adding house', error);
+                });
+        },
+        deleteHouse(id) {
+            if (id <= 4) {
+                alert("Du kan ikke slette elementerne med Id 1 til 4.");
+                return;
+            }
+
+            axios.delete(`https://resthouseexam2023.azurewebsites.net/api/Houses/${id}`)
+                .then(response => {
+                    this.fetchHouses();
+                })
+                .catch(error => {
+                    console.error(`Error deleting house with id ${id}`, error);
+                });
+        }
+    }
+});
+</script>
+
+</body>
+</html>
